@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MTW App Template</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"
+        integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" crossorigin="anonymous"></script>
+    <!-- example for dark theme styling when using tailwind cdn -->
+    <style>
+        .dark .dark\:text-white {
+            color: #fff;
+        }
+        .dark .dark\:bg-gray-800 {
+            background-color: #181819;
+        }
+
+        /*add your custom css rules here*/
+    </style>
+</head>
+
+<body class="dark:text-white px-4">
+    <div class="max-w-[360px] mt-4 mx-auto h-[54px]">
+        <div class="text-4xl py-6 text-center">Real time ticker</div>
+        <div class="flex justify-center gap-4 font-bold pb-2">
+            <div class="py-1">Symbol</div>
+            <select id="symbol" class="border border-gray-300 rounded-md w-[100px] px-2 py-1 dark:bg-gray-800 dark:text-white"></select>
+        </div>
+        <div class="text-2xl" id="price"></div>
+        <div class="text-center" id="time"></div>
+    </div>
+    <script>
+        const wsURL = 'wss://tickers.herokuapp.com'
+        const socket = new WebSocket(wsURL)
+        const listURL = "https://api.mtw-testnet.com/tickers/all"
+        const def = 'BTC'
+
+        const createOptions = (data) => {
+            for (const key in data) {
+                const option = $("<option/>").val(key).text(key)
+                if (key === def) option.prop("selected", true)
+                $('#symbol').append(option)
+            }
+        }
+
+        const configWebsocketEvents = () => {
+            socket.onmessage = (e) => {
+                const data = JSON.parse(e.data)[$('#symbol').val()]
+                const p = parseFloat(data.p).toFixed(2) 
+                const a = parseFloat(data.c).toFixed(2)
+                const col = a <= 0 ? 'red' : 'green'
+                const sign = a <= 0 ? '&#x25BC;' : '&#x25B2;'
+                const c = `<span style="margin-left:20px;color:${col}">${sign}<b style="margin-left:5px;margin-right:5px">${a}</b>%</span>`
+                $('#price').html(`<div style="border:1px solid silver;padding:10px 10px;text-align:center;border-radius: 10px;">${p}${c}</div>`)
+                $('#time').text(new Date(data.t).toLocaleString())
+            }
+        }
+
+        // on document load fetch the list of available tickers
+        $(() => {
+            fetch(listURL)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data)
+                    createOptions(data)
+                    // after load of the list, connect to the websocket
+                    configWebsocketEvents()
+                })
+        })       
+    </script>
+    <script src="https://morethanwallet.com/appstore/index.js"></script>
+</body>
+
+</html>
