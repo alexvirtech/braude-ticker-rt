@@ -36,16 +36,16 @@
     </div>
     <script>
         const wsURL =  'wss://mtickers.mtw-testnet.com' 
-        const socket = new WebSocket(wsURL)
-        const listURL = "https://api.mtw-testnet.com/tickers/all"
+        const socket = new WebSocket(wsURL)        
+        const listURL = "https://mtickers.mtw-testnet.com/symbols"
         const def = 'BTC'
 
         const createOptions = (data) => {
-            for (const key in data) {
+            data.forEach(key => {
                 const option = $("<option/>").val(key).text(key)
                 if (key === def) option.prop("selected", true)
                 $('#symbol').append(option)
-            }
+            })
         }
 
         const configWebsocketEvents = () => {
